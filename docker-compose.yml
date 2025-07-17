@@ -15,7 +15,13 @@ services:
       - .:/app
     ports:
       - "3000:3000"
-    command: sh -c "npm install && npm run dev -- -H 0.0.0.0"
+    command: >
+      sh -c "
+        npm install &&
+        npx prisma migrate deploy &&
+        npx prisma generate &&
+        npm run dev -- -H 0.0.0.0
+      "
     environment:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/tokenvesting_mvp
     depends_on:
