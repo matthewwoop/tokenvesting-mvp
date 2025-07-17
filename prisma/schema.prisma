@@ -1,15 +1,40 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model VestingSchedule {
+  id                String             @id @default(cuid())
+  name              String
+  createdAt         DateTime           @default(now())
+  totalQuantity     Float
+  purchasePrice     Float?
+  purchaseDate      DateTime?
+  unlockEvents      UnlockEvent[]
+  dlomCalculations  DLOMCalculation[]
+}
+
+model UnlockEvent {
+  id                   String             @id @default(cuid())
+  vestingSchedule      VestingSchedule    @relation(fields: [vestingScheduleId], references: [id])
+  vestingScheduleId    String
+  unlockDate           DateTime
+  amount               Float
+  frequency            String
+}
+
+model DLOMCalculation {
+  id                   String             @id @default(cuid())
+  vestingSchedule      VestingSchedule    @relation(fields: [vestingScheduleId], references: [id])
+  vestingScheduleId    String
+  runAt                DateTime           @default(now())
+  totalUnlocked        Float              @default(0.0)
+  totalLocked          Float              @default(0.0)
+  discountPercent      Float?
+  discountedValue      Float?
+  resultsJson          Json
 }
