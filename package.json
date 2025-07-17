@@ -1,0 +1,37 @@
+{
+  "name": "parafi-tokenvesting-mvp",
+  "version": "0.1.0",
+  "description": "An interactive web-app for ParaFi's internal teams to model token vesting schedules and estimate locked position value.",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matthewwoop/parafi-tokenvesting-mvp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/matthewwoop/parafi-tokenvesting-mvp/issues"
+  },
+  "homepage": "https://github.com/matthewwoop/parafi-tokenvesting-mvp#readme",
+  "dependencies": {
+    "next": "^15.4.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "@types/react": "^19.1.8",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
+  }
+}
