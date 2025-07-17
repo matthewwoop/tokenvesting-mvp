@@ -1,9 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { getSpotPriceUSD, getAnnualizedVolatility } from '@/lib/marketData';
+import { blackScholesPut } from '@/lib/optionPricing';
 
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
   const { id } = req.query as { id: string };
 
   if (req.method === 'POST') {
@@ -18,18 +21,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: 'VestingSchedule not found' });
     }
 
-    // 2) Placeholder: run DLOM logic
-    // TODO: replace with real Black–Scholes math
-    // For now, build a dummy results array and summary
-    const results = schedule.unlockEvents.map(ev => ({
-      date: ev.unlockDate,
-      unlockAmount: ev.amount,
-      discount: 0,            // placeholder
-    }));
-    const totalUnlocked   = results.reduce((sum, r) => sum + r.unlockAmount, 0);
-    const totalLocked     = schedule.totalQuantity - totalUnlocked;
-    const discountPercent = 0;      // placeholder
-    const discountedValue = 0;      // placeholder
+    // 2) Apply DLOM to calculate discounted token value
+    const spot = getSpotPriceUSD('SOL');
+    const vol  = getAnnualizedVolatility('SOL');
+    const r    = 0.03; // 3% risk-free rate
+
+    const results = schedule.unlockEvents.map(ev => {
+      // time to expiry in years
+      const T = Math.max(
+        (ev.unlockDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 365), 0
+      );
+      const premium  = blackScholesPut(spot, spot, r, vol, T);
+      const discount = premium / spot;
+
+      return {
+        date: ev.unlockDate,
+        unlockAmount: ev.amount,
+        premium,
+        discount,
+      };
+    });
+
+    const totalUnlocked    = results.reduce((sum, r) => sum + r.unlockAmount, 0);
+    const totalLocked      = schedule.totalQuantity - totalUnlocked;
+    const discountPercent  = results.length > 0 ? results[results.length - 1].discount * 100 : 0;
+    const discountedValue  = totalUnlocked * spot * (1 - (results[results.length - 1]?.discount ?? 0));
 
     // 3) Create & store DLOM Calculation with error handling
     try {
