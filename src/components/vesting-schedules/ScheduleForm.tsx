@@ -84,105 +84,129 @@ export default function ScheduleForm() {
     // Redirect to results
     router.push(`/vesting-schedules/${id}`);
   };
-
-    return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Schedule Details */}
-      <Card>
-        <CardHeader><CardTitle>Schedule Details</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register('name', { required: true })} />
-            {errors.name && <p className="text-red-500">Required</p>}
-          </div>
-          <div>
-            <Label htmlFor="totalQuantity">Total Quantity</Label>
-            <Input
-              id="totalQuantity"
-              type="number"
-              {...register('totalQuantity', { valueAsNumber: true, required: true })}
-            />
-            {errors.totalQuantity && <p className="text-red-500">Required</p>}
-          </div>
-          <div>
-            <Label htmlFor="purchasePrice">Purchase Price (USD)</Label>
-            <Input
-              id="purchasePrice"
-              type="number"
-              step="0.01"
-              {...register('purchasePrice', { valueAsNumber: true })}
-            />
-          </div>
-          <div>
-            <Label>Purchase Date</Label>
-            <Controller
-              control={control}
-              name="purchaseDate"
-              render={({ field }) => (
-                <DatePicker
-                  selected={field.value}
-                  onChange={field.onChange}
-                  className="w-full border rounded p-2"
-                />
-              )}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Unlock Events */}
-      <Card>
-        <CardHeader className="flex justify-between items-center">
-          <CardTitle>Unlock Events</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => append({ unlockDate: new Date(), amount: 0, frequency: 'cliff' })}
-          >
-            + Add Event
-          </Button>
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card className="max-w-3xl mx-auto mt-10 shadow">
+        <CardHeader>
+          <CardTitle className="text-2xl">Create a Vesting Schedule</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {fields.map((field, idx) => (
-            <div key={field.id} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-              <Controller
-                control={control}
-                name={`unlockEvents.${idx}.unlockDate`}
-                render={({ field }) => (
-                  <DatePicker
-                    selected={field.value}
-                    onChange={field.onChange}
-                    className="w-full border rounded p-2"
-                  />
-                )}
-              />
+
+        <CardContent className="space-y-6">
+          {/* --- Schedule Details --- */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="name">Schedule Name</Label>
               <Input
-                type="number"
-                step="0.01"
-                {...register(`unlockEvents.${idx}.amount`, { valueAsNumber: true, required: true })}
-                placeholder="Amount"
+                id="name"
+                placeholder="e.g. Team Grant"
+                {...register("name")}
               />
-              <select
-                {...register(`unlockEvents.${idx}.frequency`)}
-                className="w-full border rounded p-2"
-              >
-                <option value="cliff">Cliff</option>
-                <option value="daily">Daily</option>
-                <option value="monthly">Monthly</option>
-              </select>
-              <Button variant="ghost" size="sm" className="text-red-500" onClick={() => remove(idx)}>
-                Remove
-              </Button>
             </div>
-          ))}
+
+            <div>
+              <Label htmlFor="totalQuantity">Total Quantity</Label>
+              <Input
+                id="totalQuantity"
+                type="number"
+                {...register("totalQuantity", { valueAsNumber: true })}
+              />
+            </div>
+          </div>
+
+          {/* --- Price & Dates --- */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="purchasePrice">Purchase Price (USD)</Label>
+              <Input
+                id="purchasePrice"
+                type="number"
+                {...register("purchasePrice", { valueAsNumber: true })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="purchaseDate">Purchase Date</Label>
+              <Input
+                id="purchaseDate"
+                type="date"
+                {...register("purchaseDate", { valueAsDate: true })}
+              />
+            </div>
+          </div>
+
+          {/* --- Unlock Events --- */}
+          <div className="space-y-4">
+            <Label>Unlock Events</Label>
+
+            {fields.map((field, idx) => (
+              <div
+                key={field.id}
+                className="grid gap-4 sm:grid-cols-3 items-end"
+              >
+                <div>
+                  <Label htmlFor={`unlockEvents.${idx}.unlockDate`}>
+                    Unlock Date
+                  </Label>
+                  <Popover>
+                    {/* DatePicker for unlockEvents[idx].unlockDate */}
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label htmlFor={`unlockEvents.${idx}.amount`}>
+                    Amount
+                  </Label>
+                  <Input
+                    id={`unlockEvents.${idx}.amount`}
+                    type="number"
+                    {...register(
+                      `unlockEvents.${idx}.amount` as const,
+                      { valueAsNumber: true }
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor={`unlockEvents.${idx}.frequency`}>
+                    Frequency (days)
+                  </Label>
+                  <Input
+                    id={`unlockEvents.${idx}.frequency`}
+                    type="number"
+                    {...register(
+                      `unlockEvents.${idx}.frequency` as const,
+                      { valueAsNumber: true }
+                    )}
+                  />
+                </div>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => remove(idx)}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={() =>
+                append({ unlockDate: new Date(), amount: 0, frequency: 0 })
+              }
+            >
+              + Add Event
+            </Button>
+          </div>
+
+          {/* --- Submit --- */}
+          <Button type="submit" className="w-full">
+            Create Schedule
+          </Button>
         </CardContent>
       </Card>
-
-      {/* Submit */}
-      <div className="text-right">
-        <Button type="submit">Calculate</Button>
-      </div>
     </form>
-  );
+  )
 }
